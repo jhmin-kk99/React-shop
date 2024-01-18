@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import {Container, Nav, Navbar, Col, Row} from 'react-bootstrap';
 import data from './data.js';
 import { Routes, Route, Link, useNavigate, Outlet} from 'react-router-dom'
 import Detail from './routes/detail.js';
-
+import axios from 'axios';
 
 function App() {
 
@@ -13,6 +13,9 @@ function App() {
   let navigate = useNavigate();
   //1. 페이지 이동도와주는 useNavigate()
 
+  let [count,setCount] = useState(2)
+  let [loading,setLoading] = useState(false)
+  const max = 4
   return (
     <div className="App">
 
@@ -35,10 +38,6 @@ function App() {
     let navigate = useNavigate() , navigate(1) : 앞으로 한 페이지 이동해주세요
     navigate(-1) : 뒤로 한 페이지 이동해주세요 */}
 
-    
-      
-      
-
     {/* Route : 페이지라고 생각하면 됨 */}
       <Routes> 
         <Route path="/" element={
@@ -47,24 +46,33 @@ function App() {
           <Container>
           <button onClick={()=>{
             let copy = [...shoes]
-            copy.sort((a,b)=>{
-              if(a.title > b.title) return 1;
-              if(a.title < b.title) return -1;
-              return 0;
-            })
+            copy.sort((a,b)=>
+              a.title.localeCompare(b.title)
+            );
             setShoes(copy);
           }}>정렬하기</button>
 
             <Row>
             {
-              
                 shoes.map(function(a,i){
                 return(  
                   <Card shoes={shoes} id={shoes[i].id} navigate={navigate} key={i}></Card>
                 )
                 })
             } 
-            </Row>
+            </Row> {/* ajax쓰려면 옵션 3개 중 택1
+              1. XMLHttpRequest, 2. fetch(), 3. axios 같은거
+              */}   
+              
+              {
+                loading ? <div>loading</div> : null
+              }
+              { 
+                count<max ? <Btn count={count} setCount={setCount} 
+                shoes={shoes} setShoes={setShoes} setLoading={setLoading} />:null
+              }
+              
+
           </Container>
           </>
           
@@ -74,9 +82,8 @@ function App() {
         <Route path="/about" element={<About/>}>
           <Route path="member" element={<div>멤버임</div>}/>
           <Route path="location" element={<div>위치정보임</div>}/>
-          {/* 장점 : nested route 접속시엔 element 2개나 보임 ,
+        </Route> {/* 장점 : nested route 접속시엔 element 2개나 보임 ,
           내부 어디에 보여줄지 작성해야함*/}
-        </Route>
         <Route path="/event" element={<Event/>}>
           <Route path="one" element={<p>첫 주문시 양배추즙 서비스</p>}></Route>
           <Route path="two" element={<p>생일기념 쿠폰받기</p>}></Route>
@@ -95,14 +102,19 @@ function App() {
 }
 
 function Card(props) {
+  let id = props.id;
+  let 찾은상품 = props.shoes.find(
+    (x) => x.id==id
+  )
   return(
     
     <Col onClick={()=>{
       props.navigate("/detail/"+props.id)
     }}>
-        <img src= {"https://codingapple1.github.io/shop/shoes" + (props.id+1) + ".jpg"} alt='#' width="80%"></img>
-        <h4>{props.shoes[props.id].title}</h4>
-        <p>{props.shoes[props.id].price}</p>
+        
+        <img src= {"https://codingapple1.github.io/shop/shoes" + (props.id+1) + ".jpg"} alt='#' width="100%"></img>
+        <h4>{찾은상품.title}</h4>
+        <p>{찾은상품.price}</p>
     </Col>
     
 
@@ -125,6 +137,41 @@ function Event(){
       <h4>오늘의 이벤트</h4>
       <Outlet></Outlet>
     </div>
+  )
+}
+
+function Btn(props){
+  return(
+<button onClick={()=>{
+              props.setLoading(true)
+              axios.get('https://codingapple1.github.io/shop/data'+props.count+'.json')
+              .then((결과)=>{ 
+                let copy = [...props.shoes, ...결과.data];
+                // (결과.data).map(function(a,i){
+                //   copy.push(a);
+                // })
+                props.setShoes(copy);
+                props.setCount(props.count+1)
+                //setCount가 비동기로 이루어져 좀 느림 , Batch작업을 해서 업데이트하기 때문
+                props.setLoading(false)
+              })
+              .catch(()=>{
+                console.log('실패함 ㅅㄱ')
+                props.setLoading(false)
+              })
+              //ajax 요청 실패할 경우 (예외처리)
+
+              //axios.post('/~~', {name : 'kim'}) 
+              
+              //동시에 ajax 요청 여러개 하려면
+              // Promise.all([ axios.get('/url1'), axios.get('/url2')])
+              // .then(()=>{
+
+              // })
+              //원래는 서버와 문자만 주고받을 수 있음
+              //따옴표 쳐놓으면 array, object도 주고받기 가능
+
+            }}>더보기</button>
   )
 }
 
