@@ -9,15 +9,12 @@ import Detail from './routes/detail.js';
 function App() {
 
 
-  let [shoes] = useState(data)
+  let [shoes, setShoes] = useState(data)
   let navigate = useNavigate();
   //1. 페이지 이동도와주는 useNavigate()
 
   return (
     <div className="App">
-
-     
-
 
 
       <Navbar bg="dark" data-bs-theme="dark">
@@ -38,7 +35,7 @@ function App() {
     let navigate = useNavigate() , navigate(1) : 앞으로 한 페이지 이동해주세요
     navigate(-1) : 뒤로 한 페이지 이동해주세요 */}
 
-     
+    
       
       
 
@@ -47,21 +44,33 @@ function App() {
         <Route path="/" element={
           <>
           <div className="main-bg" src></div>
-           <Container>
+          <Container>
+          <button onClick={()=>{
+            let copy = [...shoes]
+            copy.sort((a,b)=>{
+              if(a.title > b.title) return 1;
+              if(a.title < b.title) return -1;
+              return 0;
+            })
+            setShoes(copy);
+          }}>정렬하기</button>
+
             <Row>
-             {
+            {
+              
                 shoes.map(function(a,i){
-                 return(  
-                   <Card shoes={shoes[i]} i={i} ></Card>
-                 )
+                return(  
+                  <Card shoes={shoes} id={shoes[i].id} navigate={navigate} key={i}></Card>
+                )
                 })
-             } 
+            } 
             </Row>
-           </Container>
+          </Container>
           </>
-           
+          
         }></Route>
-        <Route path="/detail" element={<Detail/>}/>
+        <Route path="/detail/:id" element={<Detail shoes={shoes} />}/>
+        {/* 페이지 여러개 만들고 싶으면 : URL */}
         <Route path="/about" element={<About/>}>
           <Route path="member" element={<div>멤버임</div>}/>
           <Route path="location" element={<div>위치정보임</div>}/>
@@ -87,11 +96,16 @@ function App() {
 
 function Card(props) {
   return(
-    <Col>
-      <img src= {"https://codingapple1.github.io/shop/shoes" + (props.i+1) + ".jpg"} alt='#' width="80%"></img>
-      <h4>{props.shoes.title}</h4>
-      <p>{props.shoes.price}</p>
+    
+    <Col onClick={()=>{
+      props.navigate("/detail/"+props.id)
+    }}>
+        <img src= {"https://codingapple1.github.io/shop/shoes" + (props.id+1) + ".jpg"} alt='#' width="80%"></img>
+        <h4>{props.shoes[props.id].title}</h4>
+        <p>{props.shoes[props.id].price}</p>
     </Col>
+    
+
   )
 }
 
