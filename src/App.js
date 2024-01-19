@@ -1,15 +1,25 @@
-import { useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import './App.css';
 import {Container, Nav, Navbar, Col, Row} from 'react-bootstrap';
 import data from './data.js';
 import { Routes, Route, Link, useNavigate, Outlet} from 'react-router-dom'
 import Detail from './routes/detail.js';
+import Cart from './routes/Cart.js';
 import axios from 'axios';
+//single page application 단점 : 컴포넌트간 state 공유 어려움
+
+//context를 만들어줌 (state 보관함)
+//셋팅1. context 만들기
+//셋팅2. <Context>로 원한느 컴포넌트 감싸기
+export let Context1 = createContext()
 
 function App() {
 
 
   let [shoes, setShoes] = useState(data)
+  let [재고] = useState([10,11,12])
+
+
   let navigate = useNavigate();
   //1. 페이지 이동도와주는 useNavigate()
 
@@ -26,10 +36,10 @@ function App() {
           <Nav className="me-auto">
             <Nav.Link onClick={()=>{
               navigate('/')
-            }}>홈</Nav.Link>
+            }}>home</Nav.Link>
             <Nav.Link onClick={()=>{
-              navigate('/detail')
-            }}>상세페이지</Nav.Link>
+              navigate('/cart')
+            }}>cart</Nav.Link>
           </Nav>
         </Container>
       </Navbar>
@@ -77,7 +87,12 @@ function App() {
           </>
           
         }></Route>
-        <Route path="/detail/:id" element={<Detail shoes={shoes} />}/>
+        <Route path="/detail/:id" element={
+        <Context1.Provider value={{재고}}>
+          <Detail shoes={shoes}/>
+        </Context1.Provider>
+        
+        }/>
         {/* 페이지 여러개 만들고 싶으면 : URL */}
         <Route path="/about" element={<About/>}>
           <Route path="member" element={<div>멤버임</div>}/>
@@ -95,6 +110,7 @@ function App() {
         - 여러 페이지 필요할 때
         - 여러 유사한 페이지 필요할 때
         */}
+        <Route path="/cart" element={<Cart/>}></Route>
       </Routes>
     
     </div>
@@ -170,6 +186,12 @@ function Btn(props){
               // })
               //원래는 서버와 문자만 주고받을 수 있음
               //따옴표 쳐놓으면 array, object도 주고받기 가능
+              //{"name" : "kim"} : JSON
+
+              //fetch('https:~~)
+              //로 받아오는 경우에, .then(결과=>결과.json()).then(data=>{})
+              //추가해야함.. JSON->array/object 변환과정 필요함
+              //axios가 편리하긴함
 
             }}>더보기</button>
   )
@@ -187,4 +209,9 @@ function Btn(props){
 //외부라이브러리는 필요할 때 검색해서 씀
 
 //페이지도 컴포넌트로 만들면 좋음
+
+
+
+
+
 export default App;

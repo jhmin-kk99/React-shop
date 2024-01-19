@@ -1,17 +1,27 @@
 //Detail 안에 shoes라는 state 더 만들면 편할 듯?
 //나중에 수정사항 생기면 곤란해짐
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import style, { styled } from 'styled-components'
+import { Nav } from 'react-bootstrap';
 //이쁜 버튼만들고 싶으면? css 파일 가야함 -> js파일에서 전부해결가능
 //스타일이 다른 js파일로 오염되지 않음
 //다른 방법으로 App.css 대신에 App.module.css를 하면 App.js에 종속되는 css 파일이 됨
 //페이지 로딩시간 단축
+import { Context1 } from '../App.js'
+//state사용은 1.Context를 import
+//2. useContext(Context)
+//Detail 뿐만 아니라 그 자식들도 props 없이 사용가능 
+//안쓰는이유 - 1. state 변경시 쓸데없는 것까지 재렌더링
+// {{재고}} 변경되면 {재고}안쓰는 놈들도 무조건 재렌더링
+// 나중에 컴포넌트 재사용이 어려움 - 외부 라이브러리 쓰자 Redux 
+import { addCart } from "../store.js";
+import { useDispatch } from "react-redux";
 
 const YellowBtn = styled.button`
-    background : ${ props => props.bg};
-    color : ${ props => props.bg == 'blue' ? 'white' : 'black' };
+    background : ${props => props.bg};
+    color : ${props => props.bg == 'blue' ? 'white' : 'black'};
     padding : 10px;
 `;
 //props를 통해 비슷하면 간단하게 바꿀 수 있음
@@ -67,23 +77,31 @@ let Box = styled.div`
     padding : 20px;
 `
 
-function Detail(props){
-    
+function Detail(props) {
+
+    //보관함 해체 (object형으로)
+    let {재고} = useContext(Context1) //destructuring문법
+
     let [count, setCount] = useState(0);
-    let {id} = useParams();
+    let { id } = useParams();
     let 찾은상품 = props.shoes.find(
-        (x) => x.id==id
+        (x) => x.id == id
     )
     let [alert, setAlert] = useState(false);
     let [입력값, 입력값변경] = useState("");
     let [isNum, setIsNum] = useState(true);
-    useEffect(()=>{
+
+    let [탭, 탭변경] = useState(0)
+    let [fade, setFade] = useState('')
+
+    let dispatch = useDispatch()
+    useEffect(() => {
         //console.log('안녕')
         //원래 디버깅용으로 두번 실행됨, product에서는 한번 실행될 거임
         //싫으면 index.js에서 <React.StrictMode> 지우셈
         //update : 재렌더링이라 생각하면됨
 
-        let a = setTimeout(()=>{
+        let a = setTimeout(() => {
             setAlert(true);
         }, 2000)
         //useEffect 실행조건 넣을 수 있는 곳은 []
@@ -91,9 +109,16 @@ function Detail(props){
         //즉 마운트 될 때, []안의 state가 변할 때
         // 빈 [] 만 넣을 때 -> 마운트시에만 1회 실행됨
         console.log(2)
-        return ()=>{
+
+        let b = setTimeout(()=>{
+            //document.getElementsByClassName('startDetail')[0].classList.add('endDetail')
+            setFade('endDetail')
+        },10) 
+        return () => {
             console.log(1)
             clearTimeout(a)
+            clearTimeout(b)
+            setFade('')
         }
         //useEffect 동작 전에 실행되는 return()=>{}
         //(별명 : clean up function)
@@ -105,7 +130,7 @@ function Detail(props){
         //버그가 생길 수 있음 .. 이럴 때, clean up function으로 기존 데이터 요청은
         //제거해달라고 적을 수도 있음 
         //clean up function은 mount시 실행안됨, unmount시 실행됨
-    }, [count])
+    }, [])
 
     // useEffect(()=>{}) 1. 재렌더링마다 코드실행하고 싶으면
     // useEffect(()=>{}, []) 2. mount시 1회 코드 실행하고 싶으면
@@ -117,47 +142,117 @@ function Detail(props){
     // 4. useEffect 실행 전에 뭔가 실행하려면 언제나 return()=>{}
     // 5. dependency 넣어주려면(특정 state 변경시에만 실행) []안에 state명
 
-    useEffect(()=>{
+    useEffect(() => {
         //isNaN() : Not a number
         isNaN(입력값) ? setIsNum(false) : setIsNum(true);
-    },[입력값])
+    }, [입력값])
 
-    return(
-        <div className="container">
-            
+    // useEffect(()=>{
+    //     let a = setTimeout(()=>{
+    //         document
+    //     },10)
+    //     return ()=>{
+
+    //     }
+    // },[])
+    return (
+        <div className={'container startDetail ' + fade}>
+
             {
-                alert ? 
-                null : <div className="alert alert-warning" >
-                2초이내 구매시 할인
-                </div>
+                alert ?
+                    null : <div className="alert alert-warning" >
+                        2초이내 구매시 할인
+                    </div>
             }
-            
-             {count}
-             <button onClick={()=>{ setCount(count+1)} }>버튼</button>
-                <div className="row">
+
+            {재고}
+            <br/>
+            {count}
+            <button onClick={() => { setCount(count + 1) }}>버튼</button>
+            <div className="row">
                 <div className="col-md-6">
-                    <img src={"https://codingapple1.github.io/shop/shoes"+ (찾은상품.id+1) +".jpg"} alt='#' width="100%" />
+                    <img src={"https://codingapple1.github.io/shop/shoes" + (찾은상품.id + 1) + ".jpg"} alt='#' width="100%" />
                 </div>
                 {
-                    isNum ? null :  <div className="alert alert-warning" >
-                    그러지마세요
+                    isNum ? null : <div className="alert alert-warning" >
+                        그러지마세요
                     </div>
                 }
-               
-                <input type="text" style={{height : '40px', width : '500px'}} onChange={(e)=>{
+
+                <input type="text" style={{ height: '40px', width: '500px' }} onChange={(e) => {
                     입력값변경(e.target.value)
-                }}/>
+                }} />
                 <div className="col-md-6">
                     <h4 className="pt-5">{찾은상품.title}</h4>
                     <p>{찾은상품.content}</p>
                     <p>{찾은상품.price}</p>
-                    <button className="btn btn-danger">주문하기</button> 
+                    <button className="btn btn-danger" onClick={()=>{
+                        {
+                            dispatch(addCart(찾은상품))
+                            console.log(찾은상품)
+                        }
+                        
+                    }}>주문하기</button>
                 </div>
             </div>
-        </div> 
+
+
+            {/* 1. html css로 미리 디자인 */}
+            <Nav variant="tabs" defaultActiveKey="link0">
+                <Nav.Item>
+                    <Nav.Link eventKey="link0" onClick={()=>{탭변경(0)}}>버튼0</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                    <Nav.Link eventKey="link1" onClick={()=>{탭변경(1)}}>버튼1</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                    <Nav.Link eventKey="link2" onClick={()=>{탭변경(2)}}>버튼2</Nav.Link>
+                </Nav.Item>
+            </Nav>
+            <TabContent 탭={탭}/>
+
+
+
+        </div>
     )
 }
 
+
+//팁1. props.어쩌구가 귀찮으면 (props) 대신에 ({탭, props2 ,,,}) 이렇게 쓰면 바로 쓸 수 있음
+//팁2. 센스좋으면 if 필요 없을 수도
+function TabContent({탭}) {
+    //html밖에서 써야함
+    //가장 쉬운 방법은 컴포넌트
+
+    //shoes 를 갖다쓰려면, props를 여러번 해야함
+    //props 싫으면 1. context API (리액트 기본문법, 잘 안씀 ..성능이슈, 컴포넌트 재활요 어려움)
+    //2. Redux 등 외부라이브러리
+
+    let [scale, setScale] = useState('')
+    let {재고} = useContext(Context1)
+    //편한지 모르겠으면 쓰지마셈
+
+
+    //탭 state가 변할 때 end 부착
+    useEffect(()=>{
+        let a = setTimeout(()=>{ setScale('end') },10)
+        // 리액트의 automatic batching 기능
+        // state변경하는 함수들이 근처에 있다 -> 한번에 state 변경 (매번 state 변경하는게 아니고 마지막에 재렌더링시킴)
+        return()=>{
+            clearTimeout(a)
+            setScale('')
+        }
+
+    }, [탭])
+
+    return (
+        <div className= {'start ' + scale}>
+            {[<div>{재고}</div>, <div>내용1</div>, <div>내용2</div>][탭]}
+        </div>
+    )
+
+
+}
 
 
 export default Detail;

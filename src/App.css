@@ -4,7 +4,28 @@
   background-size: cover;
   background-position: center;
 }
+/* //전환애니메이션은 부착하면 애니메이션 나오는 className 하나 만들고 원할 때 부착하면 됨
+//1. 애니메이션 동작 전 clssName 만들기
+//2. 애니메이션 동작 후 className 만들기
+//3. className에 transition 속성 추가
+//4. 원할 때 2번 className 부착 */
 
+.start{
+  transform: scale(0);
+}
+.end{
+  transform: scale(1);
+  transition: all 0.5s;
+}
+
+
+.startDetail{
+  opacity: 0;
+}
+.endDetail{
+  opacity: 1;
+  transition: all 1s;
+}
 
 
 .App {
