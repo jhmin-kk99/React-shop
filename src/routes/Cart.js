@@ -2,8 +2,36 @@ import Table from 'react-bootstrap/Table';
 import { useDispatch, useSelector } from 'react-redux';
 import { changeName , changeAge} from '../store/userSlice.js';
 import { changeCount, deleteItem} from '../store.js';
+import { useState, memo } from 'react';
+
+
+// function Child(){
+//     return <div>자식임</div>
+// }
+
+let Child = memo(function(){
+    return <div>자식임</div>
+})
+//꼭 필요할 때만 재렌더링 해주세요
+//memo의 원리 : Child로 전송되는 props가 변할 때만 재렌더링해줌
+//기존props == 신규props 계속 비교해볼듯 
+//props가 길고 복잡하면 손해일 수도 ..
+//꼭필요한 무거운 컴포넌트에 붙이셈 (참고로 알고있으셈)
+
+// function 함수(){
+//     return 반복문10억번돌린결과
+// }
+
 
 function Cart() {
+
+    // let result = 함수(); //이렇게하면 카트가 재렌더링되면 매번 반복문을 10억번 돌림
+    // useMemo(()=>{
+    //     return 함수() //컴포넌트 렌더링시 1회만 실행해줌 
+    // },[dependency])
+    //useEffect랑 거의 똑같음 
+    //useEffect는 랜더링이 다 끝나면 실행해주고
+    //useMemo는 랜더링 될 때 실행해줌 실행시점의 차이
 
     //Redux store 가져와줌               state.user 이렇게 쓸 수도 있음
     //중괄호와 return은 한번에 없앨 수 있음
@@ -24,8 +52,19 @@ function Cart() {
     // npm install @reduxjs/toolkit react-redux
     // 셋팅1. store.js 파일 생성
     // 셋팅2. index.js 가서 <Provider store={store}> 쓰기
+    
+    let [count,setcount] = useState(0)
     return (
         <div>
+
+        <Child></Child>
+        <button onClick={()=>{
+            setcount(count+1)
+        }}>+</button>
+        {/* 버튼 누르면 재렌더링 될듯 
+        자식 컴포넌트들도 다 재렌더링될듯 ..
+        Child가 렌더링시간 오래걸리는 친구라면?
+        Child를 꼭 필요할 때만 재렌더링 해라.. memo*/}
 
             {state.user.name} {state.user.age}의 장바구니
             <button onClick={()=>{

@@ -108,14 +108,14 @@ function Detail(props) {
         //맨날 업데이트 될 때마다 실행되는게 아니라 조건에 따라 실행함
         //즉 마운트 될 때, []안의 state가 변할 때
         // 빈 [] 만 넣을 때 -> 마운트시에만 1회 실행됨
-        console.log(2)
+       // console.log(2)
 
         let b = setTimeout(()=>{
             //document.getElementsByClassName('startDetail')[0].classList.add('endDetail')
             setFade('endDetail')
         },10) 
         return () => {
-            console.log(1)
+           // console.log(1)
             clearTimeout(a)
             clearTimeout(b)
             setFade('')
@@ -189,7 +189,7 @@ function Detail(props) {
                     <button className="btn btn-danger" onClick={()=>{
                         {
                             dispatch(addCart(찾은상품))
-                            console.log(찾은상품)
+                           // console.log(찾은상품)
                         }
                         
                     }}>주문하기</button>
